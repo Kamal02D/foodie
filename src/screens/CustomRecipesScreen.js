@@ -20,16 +20,12 @@ import {
     const dispatch = useDispatch();
   
     const route = useRoute();
-    const { recipe } = route.params || {}; // Pass the  object as a parameter
-    console.log('recipe',recipe);
-    
+    const { recipe } = route.params || {};
+
     const favoriteRecipe = useSelector(
       (state) => state.favorites.favoriterecipes
     );
-    console.log('favoriteRecipe from custom',favoriteRecipe);
-    
-    const isFavourite = favoriteRecipe.includes(recipe.idCategory); // Adjust this according to your recipe structure
-  
+
     if (!recipe) {
       return (
         <View style={styles.container}>
@@ -37,9 +33,15 @@ import {
         </View>
       );
     }
-  
+
+    const recipeId = recipe.idFood ?? recipe.id ?? recipe.title;
+    const isFavourite = favoriteRecipe.some(
+      (favorite) =>
+        (favorite.idFood ?? favorite.id ?? favorite.title) === recipeId
+    );
+
     const handleToggleFavorite = () => {
-      dispatch(toggleFavorite(recipe)); // Adjust the action to handle recipe
+      dispatch(toggleFavorite({ ...recipe, idFood: recipeId }));
     };
   
     return (
@@ -50,9 +52,9 @@ import {
       >
         {/* Recipe Image */}
         <View style={styles.imageContainer} testID="imageContainer">
-        {recipe.image && (
+          {recipe.image ? (
             <Image source={{ uri: recipe.image }} style={styles.recipeImage} />
-          )}
+          ) : null}
         </View>
         <View
           style={styles.topButtonsContainer} testID="topButtonsContainer"
@@ -94,6 +96,7 @@ import {
     imageContainer: {
       flexDirection: "row",
       justifyContent: "center",
+      minHeight: hp(35),
     },
     recipeImage: {
       width: wp(98),
@@ -125,6 +128,9 @@ import {
     topButtonsContainer: {
       width: "100%",
       position: "absolute",
+      top: 0,
+      zIndex: 1,
+      elevation: 1,
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",

@@ -1,4 +1,4 @@
-import { View, Text, Pressable, Image, StyleSheet, FlatList, TouchableOpacity } from "react-native";
+import { View, Text, Image, StyleSheet, FlatList, TouchableOpacity } from "react-native";
 import React from "react";
 import {widthPercentageToDP as wp, heightPercentageToDP as hp,} from "react-native-responsive-screen";
 import { useNavigation } from "@react-navigation/native";
@@ -7,13 +7,29 @@ export default function Recipe({ categories, foods }) {
   const navigation = useNavigation();
 
   const renderItem = ({ item, index }) => (
-<ArticleCard item={item} index={index} navigation={navigation} />
+    <ArticleCard item={item} index={index} navigation={navigation} />
   );
 
   return (
     <View style={styles.container}>
-      <View testID="recipesDisplay">
-            
+      <View testID="recipesDisplay" style={styles.listContainer}>
+        <FlatList
+          data={foods}
+          numColumns={2}
+          keyExtractor={(item, index) =>
+            String(item.idFood ?? item.recipeId ?? index)
+          }
+          renderItem={renderItem}
+          contentContainerStyle={styles.listContent}
+          columnWrapperStyle={styles.row}
+          scrollEnabled={false}
+          nestedScrollEnabled
+          ListEmptyComponent={
+            <Text style={styles.emptyText}>
+              No recipes found in this category.
+            </Text>
+          }
+        />
       </View>
     </View>
   );
@@ -22,9 +38,27 @@ export default function Recipe({ categories, foods }) {
 const ArticleCard = ({ item, index, navigation }) => {
   return (
     <View
-      style={[styles.cardContainer, { paddingLeft: 20, paddingRight: 15}]} testID="articleDisplay"
+      style={styles.cardContainer}
+      testID="articleDisplay"
     >
-   
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={() => navigation.navigate("RecipeDetail", item)}
+      >
+        <Image
+          source={{ uri: item.recipeImage }}
+          style={[
+            styles.articleImage,
+            { height: index % 3 === 0 ? hp(25) : hp(35) },
+          ]}
+        />
+        <Text style={styles.articleText} numberOfLines={2}>
+          {item.recipeName}
+        </Text>
+        <Text style={styles.articleDescription} numberOfLines={3}>
+          {item.cookingDescription || item.recipeInstructions}
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -44,13 +78,13 @@ const styles = StyleSheet.create({
     marginTop: hp(20),
   },
   cardContainer: {
-    justifyContent: "center",
+    justifyContent: "flex-start",
     marginBottom: hp(1.5),
-    flex: 1, // Allows cards to grow and fill space evenly
+    flex: 1,
+    paddingHorizontal: wp(1.5),
   },
   articleImage: {
     width: "100%",
-   
     borderRadius: 35,
     backgroundColor: "rgba(0, 0, 0, 0.05)", // bg-black/5
   },
@@ -69,5 +103,17 @@ const styles = StyleSheet.create({
   },
   row: {
     justifyContent: "space-between", // Align columns evenly
+  },
+  listContainer: {
+    width: "100%",
+  },
+  listContent: {
+    paddingBottom: hp(2),
+  },
+  emptyText: {
+    textAlign: "center",
+    color: "#6B7280",
+    fontSize: hp(1.8),
+    paddingVertical: hp(3),
   },
 });

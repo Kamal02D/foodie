@@ -17,17 +17,26 @@ export default function WelcomeScreen() {
   useEffect(() => {
     ring1padding.value = 0;
     ring2padding.value = 0;
-    setTimeout(
+    const ring1Timer = setTimeout(
       () => (ring1padding.value = withSpring(ring1padding.value + hp(5))),
       100
     );
-    setTimeout(
+    const ring2Timer = setTimeout(
       () => (ring2padding.value = withSpring(ring2padding.value + hp(5.5))),
       300
     );
 
-    setTimeout(() => navigation.navigate("Home"), 2500);
-  }, []);
+    const navigationTimer = setTimeout(
+      () => navigation.navigate("Home"),
+      2500
+    );
+
+    return () => {
+      clearTimeout(ring1Timer);
+      clearTimeout(ring2Timer);
+      clearTimeout(navigationTimer);
+    };
+  }, [navigation]);
 
   return (
     <View style={styles.container}>
@@ -49,7 +58,7 @@ export default function WelcomeScreen() {
 
       {/* title and punchline */}
       <View style={styles.textContainer}>
-        <Text style={styles.title}>Foodie</Text>
+        <Text style={styles.title}>Foodie!</Text>
         <Text style={styles.subtitle}>your food recipe app</Text>
       </View>
     </View>

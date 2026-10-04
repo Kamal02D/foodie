@@ -1,4 +1,4 @@
-import { View,Text,TextInput,TouchableOpacity,Image,StyleSheet,} from "react-native";
+import { View,Text,TextInput,TouchableOpacity,Image,StyleSheet,Alert,} from "react-native";
 import React, { useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {widthPercentageToDP as wp,heightPercentageToDP as hp,} from "react-native-responsive-screen";
@@ -12,7 +12,47 @@ export default function RecipesFormScreen({ route, navigation }) {
   );
 
   const saverecipe = async () => {
- 
+    if (!title.trim()) {
+      Alert.alert("Missing title", "Please enter a recipe title.");
+      return;
+    }
+
+    const newrecipe = {
+      ...(recipeToEdit || {}),
+      idFood: recipeToEdit?.idFood || `custom-${Date.now()}`,
+      title: title.trim(),
+      image: image.trim(),
+      description: description.trim(),
+    };
+
+    try {
+      const savedRecipes = await AsyncStorage.getItem("customrecipes");
+      const recipes = savedRecipes ? JSON.parse(savedRecipes) : [];
+
+      if (!Array.isArray(recipes)) {
+        throw new Error("Saved custom recipes data is not a list.");
+      }
+
+      if (recipeToEdit) {
+        if (
+          !Number.isInteger(recipeIndex) ||
+          recipeIndex < 0 ||
+          recipeIndex >= recipes.length
+        ) {
+          throw new Error("The recipe being edited could not be found.");
+        }
+        recipes[recipeIndex] = newrecipe;
+      } else {
+        recipes.push(newrecipe);
+      }
+
+      await AsyncStorage.setItem("customrecipes", JSON.stringify(recipes));
+      onrecipeEdited?.();
+      navigation.goBack();
+    } catch (error) {
+      console.error("Unable to save custom recipe:", error);
+      Alert.alert("Save failed", "Your recipe could not be saved.");
+    }
   };
 
   return (
